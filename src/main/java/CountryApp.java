@@ -1,38 +1,47 @@
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class CountryApp {
     public static void main(String[] args) throws IOException {
+        String theURL = "https://restcountries.com/v2/regionalbloc/eu?fields=name,capital,currencies,population,area";
+        createFile(theURL);
+        String countryDataString = getStringData("src/main/resources/CountryFile.json");
+        List<Country> euCountries = createCountryDataSet(countryDataString);
+        List<Country> topPopulation = getTop10Population(euCountries);
+        List<Country> topArea = getTop10Area(euCountries);
+        List<Country> topDensity = getTop10Density(euCountries);
 
-        Set<Country> euCountries = createCountryDataSet();
-
-        Set<Country> countriesTopPopulation = euCountries.stream()
-                .sorted(Comparator.comparingInt(Country::getPopulation).reversed())
-                .limit(10)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-
-        Set<Country> countriesTopArea = euCountries.stream()
-                .sorted(Comparator.comparingDouble(Country::getArea).reversed())
-                .limit(10)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-
-        Set<Country> countriesTopDensity = euCountries.stream()
-                .sorted(Comparator.comparingDouble(Country::getDensity).reversed())
-                .limit(10)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    private static Set<Country> createCountryDataSet() throws IOException {
-        String rawCountryData = getStringData();
+    public static List<Country> getTop10Density(List<Country> countries) {
+        return countries.stream()
+                .sorted(Comparator.comparingDouble(Country::getDensity).reversed())
+                .limit(10)
+                .collect(Collectors.toCollection(LinkedList::new));
+    }
+
+    public static List<Country> getTop10Area(List<Country> countries) {
+        return countries.stream()
+                .sorted(Comparator.comparingDouble(Country::getArea).reversed())
+                .limit(10)
+                .collect(Collectors.toCollection(LinkedList::new));
+    }
+
+    public static List<Country> getTop10Population(List<Country> countries) {
+        return countries.stream()
+                .sorted(Comparator.comparingInt(Country::getPopulation).reversed())
+                .limit(10)
+                .collect(Collectors.toCollection(LinkedList::new));
+    }
+
+    private static List<Country> createCountryDataSet(String rawCountryData) throws IOException {
         JSONArray jsonArrCountryData = new JSONArray(rawCountryData);
-        Set<Country> countries = new HashSet<>();
+        List<Country> countries = new ArrayList<>();
         for (Object countryData : jsonArrCountryData) {
             JSONObject jsonObjCountryData = (JSONObject) countryData;
             String countryName = jsonObjCountryData.optString("name", "");
@@ -50,20 +59,25 @@ public class CountryApp {
         return countries;
     }
 
-    private static String getStringData() throws IOException {
-        String theURL = "https://restcountries.com/v2/regionalbloc/eu?fields=name,capital,currencies,population,area";
-        URL url = new URL(theURL);
-        BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
-        StringBuilder inputData = new StringBuilder();
-        String inputLine;
-        while ((inputLine = in.readLine()) != null) {
-            inputData.append(inputLine);
+    public static String getStringData(String fileLocation) throws IOException {
+        BufferedReader br = new BufferedReader(new FileReader(fileLocation));
+        StringBuilder input = new StringBuilder();
+        String line;
+        while ((line = br.readLine()) != null) {
+            input.append(line);
         }
-        return inputData.toString();
+        return input.toString();
     }
 
-    private static void createFile(String input) {
-
-
+    private static void createFile(String stringURL) throws IOException {
+        URL url = new URL(stringURL);
+        BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
+        BufferedWriter out = new BufferedWriter(new FileWriter("src/main/resources/CountryFile.json"));
+        String inputLine;
+        while ((inputLine = in.readLine()) != null) {
+            out.write(inputLine);
+        }
+        in.close();
+        out.close();
     }
 }
