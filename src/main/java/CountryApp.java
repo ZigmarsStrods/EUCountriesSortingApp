@@ -4,9 +4,13 @@ import org.json.JSONObject;
 import java.io.*;
 import java.net.URL;
 import java.util.*;
+import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
 
 public class CountryApp {
+
+    private static final int TOP_RANGE = 10;
+
     public static void main(String[] args) throws IOException {
         String theURL = "https://restcountries.com/v2/regionalbloc/eu?fields=name,capital,currencies,population,area";
         createFile(theURL);
@@ -15,38 +19,37 @@ public class CountryApp {
         List<Country> topPopulation = getTop10Population(euCountries);
         List<Country> topArea = getTop10Area(euCountries);
         List<Country> topDensity = getTop10Density(euCountries);
+        System.out.println(topPopulation);
 
+    }
+
+    public static <T> List<T> getTop10(List<T> countriesList, ToDoubleFunction<T> comparatorFunc) {
+        return countriesList.stream()
+                .sorted(Comparator.comparingDouble(comparatorFunc).reversed())
+                .limit(TOP_RANGE)
+                .collect(Collectors.toCollection(LinkedList::new));
     }
 
     public static List<Country> getTop10Density(List<Country> countries) {
-        return countries.stream()
-                .sorted(Comparator.comparingDouble(Country::getDensity).reversed())
-                .limit(10)
-                .collect(Collectors.toCollection(LinkedList::new));
+        return getTop10(countries, Country::getDensity);
     }
 
     public static List<Country> getTop10Area(List<Country> countries) {
-        return countries.stream()
-                .sorted(Comparator.comparingDouble(Country::getArea).reversed())
-                .limit(10)
-                .collect(Collectors.toCollection(LinkedList::new));
+        return getTop10(countries, Country::getArea);
     }
 
     public static List<Country> getTop10Population(List<Country> countries) {
-        return countries.stream()
-                .sorted(Comparator.comparingInt(Country::getPopulation).reversed())
-                .limit(10)
-                .collect(Collectors.toCollection(LinkedList::new));
+        return getTop10(countries, Country::getPopulation);
     }
 
-    private static List<Country> createCountryDataSet(String rawCountryData) throws IOException {
+    private static List<Country> createCountryDataSet(String rawCountryData) {
         JSONArray jsonArrCountryData = new JSONArray(rawCountryData);
         List<Country> countries = new ArrayList<>();
         for (Object countryData : jsonArrCountryData) {
             JSONObject jsonObjCountryData = (JSONObject) countryData;
             String countryName = jsonObjCountryData.optString("name", "");
             String countryCapital = jsonObjCountryData.optString("capital", "");
-            int countryPopulation = jsonObjCountryData.optInt("population", 0);
+            double countryPopulation = jsonObjCountryData.optDouble("population", 0);
             double countryArea = jsonObjCountryData.optDouble("area", 0);
             JSONObject jsonCurrencyData = (JSONObject) jsonObjCountryData.getJSONArray("currencies").get(0);
             String currencyCode = jsonCurrencyData.optString("code", "");

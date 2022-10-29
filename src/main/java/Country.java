@@ -1,18 +1,16 @@
-import java.util.Objects;
-
 public class Country {
 
-    private String name;
+    private final String name;
 
-    private String capital;
+    private final String capital;
 
-    private int population;
+    private final double population;
 
-    private double area;
+    private final double area;
 
-    private Currency currency;
+    private final Currency currency;
 
-    public Country(String name, String capital, int population, double area, Currency currency) {
+    public Country(String name, String capital, double population, double area, Currency currency) {
         this.name = name;
         this.capital = capital;
         this.population = population;
@@ -20,7 +18,7 @@ public class Country {
         this.currency = currency;
     }
 
-    public int getPopulation() {
+    public double getPopulation() {
         return population;
     }
 
@@ -29,7 +27,7 @@ public class Country {
     }
 
     public double getDensity() {
-        return population/area;
+        return population / area;
     }
 
     @Override
