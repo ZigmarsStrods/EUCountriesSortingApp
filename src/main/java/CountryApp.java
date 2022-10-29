@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 public class CountryApp {
 
     private static final int TOP_RANGE = 10;
+    private static final String fileSavingLocation = "src/main/resources/CountryFile.json";
 
     public static void main(String[] args) throws IOException {
         String theURL = "https://restcountries.com/v2/regionalbloc/eu?fields=name,capital,currencies,population,area";
@@ -23,7 +24,7 @@ public class CountryApp {
 
     }
 
-    public static <T> List<T> getTop10(List<T> countriesList, ToDoubleFunction<T> comparatorFunc) {
+    private static <T> List<T> getTop10(List<T> countriesList, ToDoubleFunction<T> comparatorFunc) {
         return countriesList.stream()
                 .sorted(Comparator.comparingDouble(comparatorFunc).reversed())
                 .limit(TOP_RANGE)
@@ -62,7 +63,7 @@ public class CountryApp {
         return countries;
     }
 
-    public static String getStringData(String fileLocation) throws IOException {
+    private static String getStringData(String fileLocation) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(fileLocation));
         StringBuilder input = new StringBuilder();
         String line;
@@ -75,7 +76,7 @@ public class CountryApp {
     private static void createFile(String stringURL) throws IOException {
         URL url = new URL(stringURL);
         BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
-        BufferedWriter out = new BufferedWriter(new FileWriter("src/main/resources/CountryFile.json"));
+        BufferedWriter out = new BufferedWriter(new FileWriter(fileSavingLocation));
         String inputLine;
         while ((inputLine = in.readLine()) != null) {
             out.write(inputLine);
